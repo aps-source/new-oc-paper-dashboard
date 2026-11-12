@@ -1,0 +1,33 @@
+{
+ "updated": "2026-11-12 11:23:26",
+ "mode": "PAPER",
+ "live_orders": false,
+ "fill_model": "SIMPLIFIED",
+ "day": "2026-11-12",
+ "expiry": "2026-11-17",
+ "spot": 25301.8,
+ "warmup_ok": true,
+ "orh": 25342.0,
+ "orl": 25142.95,
+ "regime": "BEAR",
+ "last_q": null,
+ "setups": [],
+ "variants": {
+  "PA_BASE": {
+   "position": null,
+   "filled_today": 0,
+   "day_pnl": 0.0,
+   "halted": false,
+   "consec_losses": 0
+  },
+  "PA_OC": {
+   "position": null,
+   "filled_today": 0,
+   "day_pnl": 0.0,
+   "halted": false,
+   "consec_losses": 0
+  }
+ },
+ "recent_decisions": [],
+ "trades": []
+}
