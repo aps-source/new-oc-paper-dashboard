@@ -1,11 +1,11 @@
 {
- "updated": "2026-11-12 11:23:26",
+ "updated": "2026-11-12 11:27:10",
  "mode": "PAPER",
  "live_orders": false,
  "fill_model": "SIMPLIFIED",
  "day": "2026-11-12",
  "expiry": "2026-11-17",
- "spot": 25301.8,
+ "spot": 25288.1,
  "warmup_ok": true,
  "orh": 25342.0,
  "orl": 25142.95,
