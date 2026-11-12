@@ -5,44 +5,103 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>New OC Paper</title>
 <style>
-:root{--bg:#fff;--fg:#1a1a2e;--mut:#667;--card:#f4f5f8;--ok:#0a7d4f;--bad:#c0392b;--line:#dde0e8}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14161f;--fg:#e8eaf2;--mut:#99a;--card:#1d2030;--line:#2a2e42}}
-body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,Segoe UI,sans-serif;max-width:900px;margin:auto}
-h1{font-size:1.3em;margin:.3em 0}
+:root{--bg:#fff;--fg:#1a1a2e;--mut:#667;--card:#f4f5f8;--ok:#0a7d4f;--bad:#c0392b;--line:#dde0e8;--acc:#1f3a93}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14161f;--fg:#e8eaf2;--mut:#99a;--card:#1d2030;--line:#2a2e42;--acc:#7f9cf5}}
+body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,Segoe UI,sans-serif;max-width:1100px;margin:auto}
+h1{font-size:1.25em;margin:.3em 0}
+h2{font-size:1em;margin:0 0 6px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:10px 0}
 .grid{display:flex;flex-wrap:wrap;gap:10px}
-.kv{min-width:120px}.kv b{display:block;font-size:.78em;color:var(--mut);font-weight:600;text-transform:uppercase}
-table{border-collapse:collapse;width:100%;font-size:.9em}
-td,th{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left}
+.kv{min-width:110px}.kv b{display:block;font-size:.75em;color:var(--mut);font-weight:600;text-transform:uppercase}
+table{border-collapse:collapse;width:100%;font-size:.88em}
+td,th{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
 .pos{color:var(--ok)}.neg{color:var(--bad)}
 .tag{font-size:.75em;padding:1px 8px;border-radius:9px;background:var(--line)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:5px;margin-right:6px}
+.ok{background:var(--ok)}.bad{background:var(--bad)}
+.idx{min-width:128px;padding:6px 10px;border:1px solid var(--line);border-radius:8px}
+.idx b{display:block;font-size:.75em;color:var(--mut)}
+a{color:var(--acc)}
+img.chart{width:100%;border:1px solid var(--line);border-radius:8px}
+#clock{font-variant-numeric:tabular-nums}
+.links a{margin-right:14px;font-weight:600}
 </style>
 </head>
 <body>
 <!--main-dashboard-link--><div id="main-dashboard-link" data-mode="bar" style="box-sizing:border-box;width:100%;padding:7px 14px;background:#0f172a;font:600 12px/1.3 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;text-align:left;margin:-16px -16px 10px"><a href="https://aps-source.github.io/" style="color:#e2e8f0;text-decoration:none">&#9666; Main dashboard</a></div><!--/main-dashboard-link-->
-<h1>New OC — NIFTY PA + Option Chain <span class="tag">PAPER · SIMPLIFIED FILLS</span></h1>
-<div class="card"><b>Backtest (spot-only, Jan 2024 – Nov 2026, 699 sessions)</b><br>
-37 trades · win 32% · −155.7 pts · PF 0.61 (CE −190.5/25, PE +34.8/12). Underlying points, not option P&L — no spot-level edge; this page tracks the forward paper test (PA_BASE fills + PA_OC observation).</div>
-<div class="card grid" id="top"></div>
-<div class="card"><b>Variants</b><div id="vars"></div></div>
-<div class="card"><b>Today's setups</b><div id="setups"></div></div>
-<div class="card"><b>Recent decisions</b><div id="dec"></div></div>
-<div class="card"><b>Closed trades (last 50)</b><div id="trades"></div></div>
+
+<h1>New OC — NIFTY Price Action + Option Chain <span class="tag">PAPER · NO ORDERS · SIMPLIFIED FILLS</span></h1>
+<div class="card">
+ <div class="grid" id="top"></div>
+ <div style="margin-top:8px;font-size:.88em" id="strategy"></div>
+ <div class="links" style="margin-top:8px">
+  <a href="signal_log.html">Strategy Signal History</a>
+  <a href="backtest.html">Backtest</a>
+  <a href="chart_today.png" target="_blank">4K chart (full screen)</a>
+ </div>
+</div>
+
+<div class="card"><h2>Indices (live)</h2><div class="grid" id="indices"></div></div>
+<div class="card"><h2>Market levels — NIFTY option chain</h2><div id="chainref"></div></div>
+<div class="card"><h2>Start-of-day checklist</h2><div id="sod"></div></div>
+<div class="card"><h2>Entry conditions — NIFTY <span class="tag">SENSEX: not in scope (spec v1)</span></h2><div id="entry"></div></div>
+<div class="card"><h2>Exit conditions</h2><div id="exitc"></div></div>
+<div class="card"><h2>Running NIFTY chart (strategy, entries, exits)</h2>
+ <a href="chart_today.png" target="_blank"><img class="chart" id="chartimg" alt="no chart yet"></a></div>
+<div class="card"><h2>Trade log — today</h2><div id="ttoday"></div></div>
+<div class="card"><h2>Trade log — all</h2><div id="tall"></div></div>
+<div class="card"><h2>Today's setups + recent decisions</h2><div id="setups"></div><div id="dec" style="margin-top:8px"></div></div>
+
 <script>
 const esc=s=>String(s??"—").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-fetch("live_state.json?t="+Date.now()).then(r=>r.json()).then(d=>{
- const kv=(k,v)=>`<div class="kv"><b>${k}</b>${esc(v)}</div>`;
- top.innerHTML=kv("Updated",d.updated)+kv("Day",d.day)+kv("Expiry",d.expiry)+kv("Spot",d.spot)
-  +kv("Regime",d.regime)+kv("ORH",d.orh)+kv("ORL",d.orl)+kv("Warmup",d.warmup_ok?"OK":"BLOCKED")
-  +kv("Q (last)",d.last_q==null?"—":d.last_q.toFixed(4));
- vars.innerHTML="<table><tr><th>Variant</th><th>Position</th><th>Fills today</th><th>Day P&L (est ₹)</th><th>Halted</th></tr>"+
-  Object.entries(d.variants).map(([v,s])=>`<tr><td>${v}</td><td>${s.position?esc(s.position.direction+" "+s.position.strike+" x"+s.position.qty):"flat"}</td><td>${s.filled_today}</td><td class="${s.day_pnl<0?'neg':'pos'}">${s.day_pnl.toFixed(0)}</td><td>${s.halted?"YES":"no"}</td></tr>`).join("")+"</table>";
- setups.innerHTML=d.setups.length?"<table><tr><th>ID</th><th>Dir</th><th>Status</th><th>T</th><th>S</th><th>Note</th></tr>"+
-  d.setups.map(s=>`<tr><td>${esc(s.id)}</td><td>${s.dir}</td><td>${esc(s.status)}${s.crossed?" ✚":""}</td><td>${s.T?s.T.toFixed(1):"—"}</td><td>${s.S?s.S.toFixed(1):"—"}</td><td>${esc(s.reject)}</td></tr>`).join("")+"</table>":"none";
- dec.innerHTML=d.recent_decisions.length?d.recent_decisions.slice(-15).reverse().map(x=>`<div>${esc(x.t)} · ${esc(x.variant)} · ${esc(x.setup)} · <b>${esc(x.code)}</b></div>`).join(""):"none";
- trades.innerHTML=d.trades.length?"<table><tr><th>Variant</th><th>Dir</th><th>Strike</th><th>Entry</th><th>Exit</th><th>Reason</th><th>Net ₹ (est)</th></tr>"+
-  d.trades.slice().reverse().map(t=>`<tr><td>${esc(t.variant)}${t.observation_only==="True"||t.observation_only===true?" <span class=tag>obs</span>":""}</td><td>${esc(t.direction)}</td><td>${esc(t.strike)}</td><td>${esc((t.entry_time||"").slice(11,16))} @${t.entry_premium}</td><td>${esc((t.exit_time||"").slice(11,16))} @${t.exit_premium}</td><td>${esc(t.exit_reason)}</td><td class="${t.net_rs<0?'neg':'pos'}">${t.net_rs}</td></tr>`).join("")+"</table>":"none yet";
-}).catch(e=>{top.innerHTML="<i>live_state.json not available</i>"});
+const num=(v,d=2)=>v==null?"—":Number(v).toFixed(d);
+function tradeTable(rows){
+ if(!rows.length) return "none";
+ return "<table><tr><th>Date</th><th>Expiry</th><th>Variant</th><th>Side</th><th>Strike</th><th>Entry</th><th>Buy px</th><th>Exit</th><th>Sell px</th><th>Reason</th><th>Diff pts</th><th>Gain/Loss ₹</th></tr>"+
+  rows.slice().reverse().map(t=>`<tr><td>${esc(t.date)}</td><td>${esc(t.expiry)}</td><td>${esc(t.variant)}${t.obs?' <span class=tag>obs</span>':''}</td><td>${esc(t.side)}</td><td>${esc(t.strike)}</td><td>${esc(t.entry_time)}</td><td>${num(t.buy_px)}</td><td>${esc(t.exit_time)}</td><td>${num(t.sell_px)}</td><td>${esc(t.reason)}</td><td class="${t.diff_pts<0?'neg':'pos'}">${num(t.diff_pts)}</td><td class="${t.gain_rs<0?'neg':'pos'}">${num(t.gain_rs,0)}</td></tr>`).join("")+"</table>";
+}
+function checkRows(items){
+ return "<table>"+items.map(x=>`<tr><td><span class="dot ${x.ok?'ok':'bad'}"></span>${esc(x.label)}</td><td style="color:var(--mut)">${esc(x.detail)}</td></tr>`).join("")+"</table>";
+}
+let lastUpdated=null;
+function render(d){
+ lastUpdated=d.updated;
+ const kv=(k,v)=>`<div class="kv"><b>${k}</b>${v}</div>`;
+ const liveAge=(Date.now()-new Date(d.updated.replace(" ","T")))/1e3;
+ const live=d.in_window&&liveAge<180;
+ top.innerHTML=kv("Project","New OC")
+  +kv("Now",`<span id="clock">${new Date().toLocaleString('en-IN',{hour12:false})}</span>`)
+  +kv("Engine",`<span class="dot ${live?'ok':'bad'}"></span>${live?"LIVE":"NOT RUNNING"}`)
+  +kv("Algo window",esc(d.running_window))
+  +kv("Updated",esc(d.updated))
+  +kv("Spot",num(d.spot,2))+kv("Regime",esc(d.regime))
+  +kv("ORH / ORL",`${num(d.orh,1)} / ${num(d.orl,1)}`)
+  +kv("Expiry",esc(d.expiry))+kv("Q (last)",d.last_q==null?"—":Number(d.last_q).toFixed(4));
+ strategy.textContent=d.strategy||"";
+ indices.innerHTML=(d.indices||[]).map(i=>{const up=(i.chg??0)>=0;return `<div class="idx"><b>${esc(i.name)}</b>${num(i.ltp,2)}<span class="${up?'pos':'neg'}" style="margin-left:6px">${up?"+":""}${num(i.chg)} (${up?"+":""}${num(i.pct)}%)</span></div>`;}).join("")||"—";
+ const c=d.chain_ref;
+ chainref.innerHTML=!c?"no chain snapshot yet":
+  `<div class="grid">${kv("Spot",num(c.spot,2))}
+   ${kv("Resistance · max Call OI",`${c.resistance.strike} <span style="color:var(--mut)">${c.resistance.pct>=0?"+":""}${c.resistance.pct}% · ${c.resistance.oi_m}M OI</span>`)}
+   ${kv("Support · max Put OI",`${c.support.strike} <span style="color:var(--mut)">${c.support.pct>=0?"+":""}${c.support.pct}% · ${c.support.oi_m}M OI</span>`)}
+   ${kv("Max pain",`${c.max_pain.strike} <span style="color:var(--mut)">${c.max_pain.pct>=0?"+":""}${c.max_pain.pct}%</span>`)}
+   ${kv("PCR",esc(c.pcr))}${kv("Suggests",`<b>${esc(c.suggests)}</b>`)}</div>
+   <div style="color:var(--mut);font-size:.8em;margin-top:4px">${esc(c.note)}</div>`;
+ sod.innerHTML=checkRows(d.sod||[]);
+ entry.innerHTML=checkRows(d.entry_check||[]);
+ exitc.innerHTML=(d.exit_check||[]).map(x=>!x.open?`<div><b>${esc(x.variant)}</b>: flat</div>`:
+  `<div><b>${esc(x.variant)}</b>: ${esc(x.direction)} ${esc(x.strike)} — stop ${num(x.stop_spot,1)} · target ${num(x.target_spot,1)} · premium stop ${num(x.premium_stop)} · no-progress ${esc(x.no_progress_at)} · max hold ${esc(x.max_hold_at)} · flatten ${esc(x.flatten_at)}</div>`).join("")||"—";
+ if(d.chart) chartimg.src=d.chart+"?t="+Date.now();
+ ttoday.innerHTML=tradeTable(d.trades_today||[]);
+ tall.innerHTML=tradeTable(d.trades||[]);
+ setups.innerHTML=(d.setups||[]).length?"<table><tr><th>ID</th><th>Dir</th><th>Status</th><th>T</th><th>S</th><th>Note</th></tr>"+
+  d.setups.map(s=>`<tr><td>${esc(s.id)}</td><td>${s.dir}</td><td>${esc(s.status)}${s.crossed?" ✚":""}</td><td>${num(s.T,1)}</td><td>${num(s.S,1)}</td><td>${esc(s.reject)}</td></tr>`).join("")+"</table>":"no setups today";
+ dec.innerHTML=(d.recent_decisions||[]).slice(-12).reverse().map(x=>`<div style="font-size:.85em;color:var(--mut)">${esc(x.t)} · ${esc(x.variant)} · ${esc(x.setup)} · <b>${esc(x.code)}</b></div>`).join("");
+}
+function load(){fetch("live_state.json?t="+Date.now()).then(r=>r.json()).then(render).catch(()=>{top.innerHTML="<i>live_state.json not available</i>"});}
+load();
+setInterval(load,60000);                       // refresh data every 1 min
+setInterval(()=>{const e=document.getElementById("clock");if(e)e.textContent=new Date().toLocaleString('en-IN',{hour12:false});},1000);
 </script>
 </body>
 </html>
