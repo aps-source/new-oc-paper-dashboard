@@ -23,8 +23,9 @@ const esc=s=>String(s??"—").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"
 function load(){fetch("signal_log.json?t="+Date.now()).then(r=>r.json()).then(d=>{
  const rows=(d.decisions||[]).slice().reverse();
  t.innerHTML=`<div style="color:var(--mut);font-size:.8em">generated ${esc(d.generated)}</div>`+
+  (!rows.length?"<p>No signals logged yet — the engine writes a row for every setup stage, approval and rejection once they occur.</p>":
   "<table><tr><th>Time</th><th>Variant</th><th>Setup</th><th>Stage</th><th>Code</th><th>Detail</th></tr>"+
-  rows.map(r=>`<tr><td>${esc(r.time)}</td><td>${esc(r.variant)}</td><td>${esc(r.setup_id)}</td><td>${esc(r.stage)}</td><td><b>${esc(r.code)}</b></td><td style="color:var(--mut)">${esc(r.detail)}</td></tr>`).join("")+"</table>";
+  rows.map(r=>`<tr><td>${esc(r.time)}</td><td>${esc(r.variant)}</td><td>${esc(r.setup_id)}</td><td>${esc(r.stage)}</td><td><b>${esc(r.code)}</b></td><td style="color:var(--mut)">${esc(r.detail)}</td></tr>`).join("")+"</table>");
 }).catch(()=>{t.innerHTML="signal_log.json not available yet"});}
 load();setInterval(load,60000);
 </script>
